@@ -5,6 +5,7 @@ pipeline {
         ACR_NAME      = 'acrgitopsdemodev'
         ACR_LOGIN_SERVER = "${ACR_NAME}.azurecr.io"
         IMAGE_NAME    = 'appimage'
+        CONTAINER_NAME = 'myapp'
         IMAGE_TAG     = "${BUILD_NUMBER}"
         FULL_IMAGE    = "${ACR_LOGIN_SERVER}/${IMAGE_NAME}:${IMAGE_TAG}"
         CONTAINER_NAME = "${CONTAINER_NAME}"
