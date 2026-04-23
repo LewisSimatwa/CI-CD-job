@@ -19,17 +19,13 @@ pipeline {
 
         stage('Build Docker Image') {
             steps {
-                script {
-                    bat "docker build -t ${FULL_IMAGE} ."
-                }
+                bat "docker build -t ${FULL_IMAGE} ."
             }
         }
 
         stage('Run Tests') {
             steps {
-                script {
-                    bat "docker run --rm ${FULL_IMAGE} npm test"
-                }
+                bat "docker run --rm ${FULL_IMAGE} npm test"
             }
         }
 
@@ -52,16 +48,24 @@ pipeline {
                     file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
                     string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')
                 ]) {
-                    bat "kubectl apply -f k8s/dev/ --namespace=dev-j"
-                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=dev-j"
-                    bat "kubectl rollout status deployment/myapp-deployment --namespace=dev-j --timeout=120s"
-                    bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":white_check_mark: *DEV deploy succeeded* | Build #%BUILD_NUMBER%\\"}" %SLACK_WEBHOOK%"""
+                    bat "kubectl apply -f k8s/dev/ --namespace=dev"
+                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=dev"
+                    bat "kubectl rollout status deployment/myapp-deployment --namespace=dev --timeout=120s"
+                    powershell """
+                        \$url = "\$env:SLACK_WEBHOOK"
+                        \$body = '{"text":":white_check_mark: *DEV deploy succeeded* | Build #${BUILD_NUMBER}"}'
+                        Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                    """
                 }
             }
             post {
                 failure {
                     withCredentials([string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')]) {
-                        bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":x: *DEV deploy failed* | Build #%BUILD_NUMBER% | %BUILD_URL%\\"}" %SLACK_WEBHOOK%"""
+                        powershell """
+                            \$url = "\$env:SLACK_WEBHOOK"
+                            \$body = '{"text":":x: *DEV deploy failed* | Build #${BUILD_NUMBER}"}'
+                            Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                        """
                     }
                 }
             }
@@ -73,16 +77,24 @@ pipeline {
                     file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
                     string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')
                 ]) {
-                    bat "kubectl apply -f k8s/staging/ --namespace=staging-j"
-                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=staging-j"
-                    bat "kubectl rollout status deployment/myapp-deployment --namespace=staging-j --timeout=120s"
-                    bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":rocket: *STAGING deploy succeeded* | Build #%BUILD_NUMBER%\\"}" %SLACK_WEBHOOK%"""
+                    bat "kubectl apply -f k8s/staging/ --namespace=staging"
+                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=staging"
+                    bat "kubectl rollout status deployment/myapp-deployment --namespace=staging --timeout=120s"
+                    powershell """
+                        \$url = "\$env:SLACK_WEBHOOK"
+                        \$body = '{"text":":rocket: *STAGING deploy succeeded* | Build #${BUILD_NUMBER}"}'
+                        Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                    """
                 }
             }
             post {
                 failure {
                     withCredentials([string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')]) {
-                        bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":x: *STAGING deploy failed* | Build #%BUILD_NUMBER% | %BUILD_URL%\\"}" %SLACK_WEBHOOK%"""
+                        powershell """
+                            \$url = "\$env:SLACK_WEBHOOK"
+                            \$body = '{"text":":x: *STAGING deploy failed* | Build #${BUILD_NUMBER}"}'
+                            Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                        """
                     }
                 }
             }
@@ -91,7 +103,11 @@ pipeline {
         stage('Approval: Deploy to Prod?') {
             steps {
                 withCredentials([string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')]) {
-                    bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":hourglass: *Waiting for PROD approval* | Build #%BUILD_NUMBER% | Approve at: %BUILD_URL%input\\"}" %SLACK_WEBHOOK%"""
+                    powershell """
+                        \$url = "\$env:SLACK_WEBHOOK"
+                        \$body = '{"text":":hourglass: *Waiting for PROD approval* | Build #${BUILD_NUMBER} | Approve at: ${BUILD_URL}input"}'
+                        Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                    """
                     input message: 'Staging looks good. Deploy to Production?',
                           ok: 'Deploy to Prod',
                           submitter: 'admin'
@@ -105,16 +121,24 @@ pipeline {
                     file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
                     string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')
                 ]) {
-                    bat "kubectl apply -f k8s/prod/ --namespace=prod-j"
-                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=prod-j"
-                    bat "kubectl rollout status deployment/myapp-deployment --namespace=prod-j --timeout=120s"
-                    bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":tada: *PROD deploy succeeded* | Build #%BUILD_NUMBER% | Image: ${FULL_IMAGE}\\"}" %SLACK_WEBHOOK%"""
+                    bat "kubectl apply -f k8s/prod/ --namespace=prod"
+                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=prod"
+                    bat "kubectl rollout status deployment/myapp-deployment --namespace=prod --timeout=120s"
+                    powershell """
+                        \$url = "\$env:SLACK_WEBHOOK"
+                        \$body = '{"text":":tada: *PROD deploy succeeded* | Build #${BUILD_NUMBER} | Image: ${FULL_IMAGE}"}'
+                        Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                    """
                 }
             }
             post {
                 failure {
                     withCredentials([string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')]) {
-                        bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":fire: *PROD deploy FAILED* | Build #%BUILD_NUMBER% | %BUILD_URL%\\"}" %SLACK_WEBHOOK%"""
+                        powershell """
+                            \$url = "\$env:SLACK_WEBHOOK"
+                            \$body = '{"text":":fire: *PROD deploy FAILED* | Build #${BUILD_NUMBER}"}'
+                            Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                        """
                     }
                 }
             }
@@ -127,12 +151,20 @@ pipeline {
         }
         success {
             withCredentials([string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')]) {
-                bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":white_check_mark: *Pipeline complete* | Build #%BUILD_NUMBER% | All environments updated.\\"}" %SLACK_WEBHOOK%"""
+                powershell """
+                    \$url = "\$env:SLACK_WEBHOOK"
+                    \$body = '{"text":":white_check_mark: *Pipeline complete* | Build #${BUILD_NUMBER} | All environments updated."}'
+                    Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                """
             }
         }
         failure {
             withCredentials([string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')]) {
-                bat """curl -X POST -H "Content-type: application/json" --data "{\\"text\\":\\":x: *Pipeline failed* | Build #%BUILD_NUMBER% | %BUILD_URL%console\\"}" %SLACK_WEBHOOK%"""
+                powershell """
+                    \$url = "\$env:SLACK_WEBHOOK"
+                    \$body = '{"text":":x: *Pipeline failed* | Build #${BUILD_NUMBER}"}'
+                    Invoke-RestMethod -Uri \$url -Method Post -ContentType 'application/json' -Body \$body
+                """
             }
         }
     }
