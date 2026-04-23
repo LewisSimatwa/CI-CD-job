@@ -7,8 +7,10 @@ pipeline {
         IMAGE_NAME    = 'appimage'
         IMAGE_TAG     = "${BUILD_NUMBER}"
         FULL_IMAGE    = "${ACR_LOGIN_SERVER}/${IMAGE_NAME}:${IMAGE_TAG}"
+        CONTAINER_NAME = "${CONTAINER_NAME}"
         K8S_NAMESPACE = 'default'
         DEPLOYMENT    = 'myapp-deployment'
+
     }
 
     stages {
@@ -50,7 +52,7 @@ pipeline {
         stage('Deploy to AKS') {
             steps {
                 withCredentials([file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG')]) {
-                    bat "kubectl set image deployment/${DEPLOYMENT} ${IMAGE_NAME}=${FULL_IMAGE} --namespace=${K8S_NAMESPACE}"
+                    bat "kubectl set image deployment/${DEPLOYMENT} ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=${K8S_NAMESPACE}"
                     bat "kubectl rollout status deployment/${DEPLOYMENT} --namespace=${K8S_NAMESPACE} --timeout=120s"
                 }
             }
