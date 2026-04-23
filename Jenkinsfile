@@ -48,9 +48,9 @@ pipeline {
                     file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
                     string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')
                 ]) {
-                    bat "kubectl apply -f k8s/dev/ --namespace=dev"
-                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=dev"
-                    bat "kubectl rollout status deployment/myapp-deployment --namespace=dev --timeout=120s"
+                    bat "kubectl apply -f k8s/dev/ --namespace=dev-j"
+                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=dev-j"
+                    bat "kubectl rollout status deployment/myapp-deployment --namespace=dev-j --timeout=120s"
                     powershell """
                         \$url = "\$env:SLACK_WEBHOOK"
                         \$body = '{"text":":white_check_mark: *DEV deploy succeeded* | Build #${BUILD_NUMBER}"}'
@@ -77,9 +77,9 @@ pipeline {
                     file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
                     string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')
                 ]) {
-                    bat "kubectl apply -f k8s/staging/ --namespace=staging"
-                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=staging"
-                    bat "kubectl rollout status deployment/myapp-deployment --namespace=staging --timeout=120s"
+                    bat "kubectl apply -f k8s/staging/ --namespace=staging-j"
+                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=staging-j"
+                    bat "kubectl rollout status deployment/myapp-deployment --namespace=staging-j --timeout=120s"
                     powershell """
                         \$url = "\$env:SLACK_WEBHOOK"
                         \$body = '{"text":":rocket: *STAGING deploy succeeded* | Build #${BUILD_NUMBER}"}'
@@ -121,9 +121,9 @@ pipeline {
                     file(credentialsId: 'kubeconfig', variable: 'KUBECONFIG'),
                     string(credentialsId: 'slack-webhook-url', variable: 'SLACK_WEBHOOK')
                 ]) {
-                    bat "kubectl apply -f k8s/prod/ --namespace=prod"
-                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=prod"
-                    bat "kubectl rollout status deployment/myapp-deployment --namespace=prod --timeout=120s"
+                    bat "kubectl apply -f k8s/prod/ --namespace=prod-j"
+                    bat "kubectl set image deployment/myapp-deployment ${CONTAINER_NAME}=${FULL_IMAGE} --namespace=prod-j"
+                    bat "kubectl rollout status deployment/myapp-deployment --namespace=prod-j --timeout=120s"
                     powershell """
                         \$url = "\$env:SLACK_WEBHOOK"
                         \$body = '{"text":":tada: *PROD deploy succeeded* | Build #${BUILD_NUMBER} | Image: ${FULL_IMAGE}"}'
