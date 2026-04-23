@@ -8,7 +8,6 @@ pipeline {
         CONTAINER_NAME = 'myapp'
         IMAGE_TAG     = "${BUILD_NUMBER}"
         FULL_IMAGE    = "${ACR_LOGIN_SERVER}/${IMAGE_NAME}:${IMAGE_TAG}"
-        CONTAINER_NAME = "${CONTAINER_NAME}"
         K8S_NAMESPACE = 'default'
         DEPLOYMENT    = 'myapp-deployment'
 
