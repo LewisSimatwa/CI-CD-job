@@ -2,12 +2,13 @@ apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
   name: myapp-ingress
-  namespace: default
+  namespace: staging-j
   annotations:
-    spec.ingressClassName: nginx
+    kubernetes.io/ingress.class: nginx
 spec:
   rules:
-    - http:
+    - host: staging.myapp.local
+      http:
         paths:
           - path: /
             pathType: Prefix
