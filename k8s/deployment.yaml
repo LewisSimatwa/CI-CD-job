@@ -1,13 +1,10 @@
-#testupdate
-#testupdate
-#testupdate
 apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: myapp-deployment
   namespace: default
 spec:
-  replicas: 2
+  replicas: 4
   selector:
     matchLabels:
       app: myapp
@@ -18,7 +15,7 @@ spec:
     spec:
       containers:
         - name: myapp
-          image: yourACRname.azurecr.io/myapp:latest
+          image: yourACRname.azurecr.io/appimage:latest
           ports:
             - containerPort: 3000
           readinessProbe:

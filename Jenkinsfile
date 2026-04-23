@@ -4,7 +4,7 @@ pipeline {
     environment {
         ACR_NAME      = 'acrgitopsdemodev'
         ACR_LOGIN_SERVER = "${ACR_NAME}.azurecr.io"
-        IMAGE_NAME    = 'myapp'
+        IMAGE_NAME    = 'appimage'
         IMAGE_TAG     = "${BUILD_NUMBER}"
         FULL_IMAGE    = "${ACR_LOGIN_SERVER}/${IMAGE_NAME}:${IMAGE_TAG}"
         K8S_NAMESPACE = 'default'
@@ -58,7 +58,7 @@ pipeline {
     }
 
     post {
-        success { echo 'Pipeline succeeded! App deployed to AKS.' }
+        success { echo 'CI/CD Pipeline succeeded!' }
         failure { echo 'Pipeline failed. Check logs above.' }
         always  { bat "docker rmi ${FULL_IMAGE} || exit 0" }
     }
